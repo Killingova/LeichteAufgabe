@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Engelszahlen Uhr</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f3f4f6; /* Hintergrundfarbe angelehnt an Edge */
+            margin: 0;
+            color: #202224; /* Textfarbe, die für gute Lesbarkeit sorgt */
+        }
+        .message {
+            text-align: center;
+            width: 90%;
+            max-width: 600px;
+            padding: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23); /* Subtile Schattierung für Tiefe */
+            background: #ffffff; /* Helle Karte für die Nachricht und Uhrzeit */
+            border-radius: 8px; /* Leicht abgerundete Ecken */
+        }
+        h1 {
+            font-size: 3rem;
+            margin: 0.5em 0;
+            color: #0078D4; /* Edge-Blau für die Uhrzeit */
+        }
+        p {
+            font-size: 1.25rem;
+            color: #5f6368; /* Dunkelgrau für Nachrichten, für Kontrast */
+        }
+    </style>
+</head>
+<body>
+
+<div class="message">
+    <h1 id="time">00:00:00</h1>
+    <p id="message">Deine Nachricht erscheint hier.</p>
+</div>
+<script>
+    function updateClock() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        const timeString = hours + ":" + minutes + ":" + seconds;
+
+        document.getElementById("time").innerText = timeString;
+
+        updateMessage(hours, minutes);
+    }
+
+    function updateMessage(hours, minutes) {
+        const currentTime = hours + minutes;
+        let lastMatchingMessage = "Standardnachricht für Zeiten ohne spezifische Engelszahl.";
+        let exactMatch = false;
+
+        // Finde die letzte passende Engelszahl
+        Object.keys(messages).forEach(time => {
+            if (parseInt(time, 10) <= parseInt(currentTime, 10)) {
+                lastMatchingMessage = messages[time];
+                if (time === currentTime) {
+                    exactMatch = true;
+                }
+            }
+        });
+
+        document.getElementById("message").innerText = lastMatchingMessage;
+
+        // Auslösen des Feuerwerk-Effekts bei exakter Übereinstimmung
+        if (exactMatch) {
+            triggerFireworksEffect();
+        }
+    }
+
+    function triggerFireworksEffect() {
+        // Einfache "Feuerwerk"-Animation durch Farbwechsel
+        const messageElement = document.getElementById("message");
+        messageElement.style.transition = "color 1s ease";
+        messageElement.style.color = "red"; // Startfarbe
+        setTimeout(() => messageElement.style.color = "blue", 1000); // Endfarbe
+        // Setzen Sie die Farbe nach der Animation zurück auf Standard
+        setTimeout(() => messageElement.style.color = "#5f6368", 2000);
+    }
+
+    setInterval(updateClock, 1000); // Aktualisiert die Uhr jede Sekunde
+
+    const messages = {
+        "0000": "Neubeginn, ein frischer Start.",
+        "0101": "Neue Anfänge, Intuition folgen.",
+        "0111": "Zeichen für geistiges Erwachen und Wachstum.",
+        "0202": "Harmonie, Gleichgewicht und Beziehungen.",
+        "0222": "Geduld, Dinge entwickeln sich.",
+        "0303": "Das Universum unterstützt und führt Sie.",
+        "0333": "Die Aufgestiegenen Meister sind bei Ihnen.",
+        "0404": "Engelspräsenz, Schutz.",
+        "0444": "Verstärkte Engelspräsenz, Sie sind auf dem richtigen Weg.",
+        "0505": "Vorbereitung auf Veränderungen.",
+        "0555": "Große Veränderungen stehen bevor.",
+        "0606": "Ausgleich zwischen materiellen und spirituellen Belangen.",
+        "0707": "Sie sind auf dem richtigen Pfad, spirituelle Entwicklung.",
+        "0808": "Überfluss und Wohlstand nähern sich.",
+        "0909": "Ein Zyklus neigt sich dem Ende zu, Beginn eines Neuen.",
+        "1001": "Neue Möglichkeiten und Beginn.",
+        "1010": "Das Universum sendet eine Botschaft des Vertrauens und der Ermutigung.",
+        "1111": "Ein kraftvolles Zeichen der geistigen Verbindung.",
+        "1212": "Ein Weg des geistigen Wachstums und des Fortschritts.",
+        "1221": "Ein Zyklus endet, ein neuer beginnt.",
+        "1313": "Göttliche Weiblichkeit und Intuition.",
+        "1331": "Vertrauen Sie Ihrem inneren Selbst.",
+        "1414": "Hören Sie auf Ihre Engel und Führer.",
+        "1441": "Fokussierung auf das Positive.",
+        "1515": "Konzentration auf die Gedanken, die Sie fördern möchten.",
+        "1551": "Ein Wandel steht bevor.",
+        "1616": "Eine Nachricht über Liebe und Romantik.",
+        "1717": "Ein Zeichen für einen karmischen Pfad.",
+        "1818": "Positivität trotz Hindernissen.",
+        "1919": "Schließen Sie das Alte ab, um Platz für Neues zu schaffen.",
+        "2002": "Harmonie in Partnerschaften.",
+        "2020": "Doppelte Bestätigung, dass Dinge gut werden.",
+        "2121": "Ihre Gedanken manifestieren sich in rasanter Geschwindigkeit.",
+        "2112": "Verfolgen Sie Ihren Lebenszweck weiterhin.",
+        "2222": "Träume werden Wirklichkeit.",
+        "2323": "Vertrauen Sie Ihrem Weg und den Führungen.",
+        "2332": "Lassen Sie los und vertrauen Sie dem Fluss des Lebens."
+    };
+</script>
+</body>
+</html>
