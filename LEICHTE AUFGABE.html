@@ -4,24 +4,35 @@
     <meta charset="UTF-8">
     <title>Engelszahlen Uhr</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
+        body, html {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            background-color: #f3f4f6; /* Hintergrundfarbe angelehnt an Edge */
-            margin: 0;
-            color: #202224; /* Textfarbe, die für gute Lesbarkeit sorgt */
+            background: #000; /* Hintergrund für den gesamten Body */
+        }
+        canvas {
+            position: fixed; /* Canvas bedeckt den gesamten Bildschirm */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1; /* Canvas hinter den Nachrichten positionieren */
+            cursor: crosshair;
         }
         .message {
+            position: relative; /* Stellt sicher, dass die Nachricht über dem Canvas erscheint */
             text-align: center;
             width: 90%;
             max-width: 600px;
             padding: 20px;
             box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23); /* Subtile Schattierung für Tiefe */
-            background: #ffffff; /* Helle Karte für die Nachricht und Uhrzeit */
-            border-radius: 8px; /* Leicht abgerundete Ecken */
+            background: rgba(255, 255, 255, 0.85); /* Leicht transparentes Weiß für die Nachricht */
+            border-radius: 8px;
+            z-index: 2; /* Stellt sicher, dass die Nachricht über dem Canvas liegt */
+            color: #202224; /* Textfarbe */
         }
         h1 {
             font-size: 3rem;
@@ -30,9 +41,10 @@
         }
         p {
             font-size: 1.25rem;
-            color: #5f6368; /* Dunkelgrau für Nachrichten, für Kontrast */
+            color: #5f6368; /* Dunkelgrau für Nachrichten */
         }
     </style>
+
 </head>
 <body>
 
@@ -40,93 +52,389 @@
     <h1 id="time">00:00:00</h1>
     <p id="message">Deine Nachricht erscheint hier.</p>
 </div>
+<!-- setup our canvas element -->
+<canvas id="canvas">Canvas is not supported in your browser.</canvas>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <script>
-    function updateClock() {
-        const now = new Date();
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        const seconds = String(now.getSeconds()).padStart(2, '0');
-        const timeString = hours + ":" + minutes + ":" + seconds;
+    let isMatch = false;
+    document.addEventListener("DOMContentLoaded", function() {
+        const messages = {
+            "0000": "Neubeginn, ein frischer Start.",
+            "0101": "Neue Anfänge, Intuition folgen.",
+            "0111": "Zeichen für geistiges Erwachen und Wachstum.",
+            "0202": "Harmonie, Gleichgewicht und Beziehungen.",
+            "0222": "Geduld, Dinge entwickeln sich.",
+            "0303": "Das Universum unterstützt und führt Sie.",
+            "0333": "Die Aufgestiegenen Meister sind bei Ihnen.",
+            "0404": "Engelspräsenz, Schutz.",
+            "0444": "Verstärkte Engelspräsenz, Sie sind auf dem richtigen Weg.",
+            "0505": "Vorbereitung auf Veränderungen.",
+            "0555": "Große Veränderungen stehen bevor.",
+            "0606": "Ausgleich zwischen materiellen und spirituellen Belangen.",
+            "0707": "Sie sind auf dem richtigen Pfad, spirituelle Entwicklung.",
+            "0808": "Überfluss und Wohlstand nähern sich.",
+            "0909": "Ein Zyklus neigt sich dem Ende zu, Beginn eines Neuen.",
+            "1001": "Neue Möglichkeiten und Beginn.",
+            "1010": "Das Universum sendet eine Botschaft des Vertrauens und der Ermutigung.",
+            "1111": "Ein kraftvolles Zeichen der geistigen Verbindung.",
+            "1212": "Ein Weg des geistigen Wachstums und des Fortschritts.",
+            "1221": "Ein Zyklus endet, ein neuer beginnt.",
+            "1313": "Göttliche Weiblichkeit und Intuition.",
+            "1331": "Vertrauen Sie Ihrem inneren Selbst.",
+            "1414": "Hören Sie auf Ihre Engel und Führer.",
+            "1441": "Fokussierung auf das Positive.",
+            "1515": "Konzentration auf die Gedanken, die Sie fördern möchten.",
+            "1551": "Ein Wandel steht bevor.",
+            "1616": "Eine Nachricht über Liebe und Romantik.",
+            "1717": "Ein Zeichen für einen karmischen Pfad.",
+            "1818": "Positivität trotz Hindernissen.",
+            "1919": "Schließen Sie das Alte ab, um Platz für Neues zu schaffen.",
+            "2002": "Harmonie in Partnerschaften.",
+            "2020": "Doppelte Bestätigung, dass Dinge gut werden.",
+            "2121": "Ihre Gedanken manifestieren sich in rasanter Geschwindigkeit.",
+            "2112": "Verfolgen Sie Ihren Lebenszweck weiterhin.",
+            "2222": "Träume werden Wirklichkeit.",
+            "2323": "Vertrauen Sie Ihrem Weg und den Führungen.",
+            "2332": "Lassen Sie los und vertrauen Sie dem Fluss des Lebens."
+        };
 
-        document.getElementById("time").innerText = timeString;
+        // Funktion, die regelmäßig aufgerufen wird, um die Uhrzeit und die dazugehörige Nachricht zu aktualisieren
+        function updateClockAndMessage() {
+            // Erstellt ein neues Date-Objekt, das die aktuelle Zeit repräsentiert
+            const now = new Date();
+            // Extrahiert die Stunden und Minuten, formatiert sie zu zweistelligen Zahlen mit führenden Nullen
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0'); // Hinzufügen der Sekunden
+            // Kombiniert Stunden und Minuten zu einem vierstelligen String
+            const currentTime = hours + minutes;
 
-        updateMessage(hours, minutes);
+            // Sucht nach Elementen mit den IDs 'time' und 'message' im HTML-Dokument
+            const timeElement = document.getElementById("time");
+            const messageElement = document.getElementById("message");
+
+            // Überprüft, ob der aktuelle Zeitstempel in den definierten Nachrichten existiert
+            isMatch = messages.hasOwnProperty(currentTime);
+
+            // Filtert alle Zeitstempel, die kleiner oder gleich der aktuellen Zeit sind
+            let matchingTimes = Object.keys(messages).filter(time => time <= currentTime);
+            // Wählt den letzten (und damit nächsten) passenden Zeitstempel aus
+            let displayTime = matchingTimes[matchingTimes.length - 1];
+            // Falls kein passender Zeitstempel gefunden wird, wird eine Standardnachricht angezeigt
+            if (!displayTime) {
+                messageElement.innerText = "Keine Nachricht verfügbar.";
+                return;
+            }
+
+            // Wählt die zur ausgewählten Zeit passende Nachricht aus
+            let displayMessage = messages[displayTime];
+            // Extrahiert Stunden und Minuten aus dem ausgewählten Zeitstempel
+            let displayHours = displayTime.substring(0, 2);
+            let displayMinutes = displayTime.substring(2, 4);
+
+            // Aktualisiert die Anzeige mit der aktuellen Uhrzeit und der ausgewählten Nachricht
+            timeElement.innerText = `${hours}:${minutes}`;
+            messageElement.innerText = `Nachricht für ${displayHours}:${displayMinutes}: ${displayMessage}`;
+        }
+
+        // Ruft die Funktion `updateClockAndMessage` jede Sekunde auf, um die Anzeige aktuell zu halten
+        setInterval(updateClockAndMessage, 1000);
+
+        // Initialer Aufruf der Funktion, um die Anzeige sofort beim Laden der Seite zu aktualisieren
+        updateClockAndMessage();
+    });
+
+
+    // Ein 'shim' für requestAnimationFrame, um eine konsistente Animation auf verschiedenen Browsern zu ermöglichen.
+    // Falls requestAnimationFrame nicht verfügbar ist, wird setTimeout als Fallback verwendet.
+    window.requestAnimFrame = (function() {
+        return window.requestAnimationFrame ||
+            function(callback) {
+                window.setTimeout(callback, 1000 / 60); // Ca. 60fps
+            };
+    })();
+
+    // Initialisierung der Grundvariablen für die Demo.
+    let canvas = document.getElementById('canvas'), // Der Canvas, auf dem gezeichnet wird.
+        ctx = canvas.getContext('2d'), // Der "Kontext" des Canvas, bietet die Zeichenfunktionen.
+        cw = window.innerWidth, // Canvas-Breite: Volle Breite des Browserfensters.
+        ch = window.innerHeight, // Canvas-Höhe: Volle Höhe des Browserfensters.
+        fireworks = [], // Array zum Speichern der einzelnen Feuerwerke.
+        particles = [], // Array zum Speichern der Partikel, aus denen die Feuerwerke bestehen.
+        hue = 120, // Startfarbton für die Feuerwerke.
+        limiterTotal = 5, // Begrenzer für die Anzahl der Feuerwerke, die pro Klick ausgelöst werden können.
+        limiterTick = 0, // Zähler für den Begrenzer.
+        timerTotal = 80, // Intervall für das automatische Auslösen von Feuerwerken.
+        timerTick = 0, // Zähler für das automatische Auslösen.
+        mousedown = false, // Statusvariable, ob die Maustaste gedrückt ist.
+        mx, // X-Koordinate der Maus.
+        my; // Y-Koordinate der Maus.
+
+    // Setzt die Größe des Canvas auf die Größe des Browserfensters.
+    canvas.width = cw;
+    canvas.height = ch;
+
+    // An dieser Stelle würden normalerweise Funktionen definiert, die für die Demo benötigt werden.
+    // Beispiele für solche Funktionen könnten sein: Funktionen zum Zeichnen von Feuerwerken, zur Aktualisierung der Position von Partikeln,
+    // zur Behandlung von Benutzereingaben (wie Mausklicks) und so weiter.
+
+
+    // Generiert eine zufällige Zahl innerhalb eines angegebenen Bereichs.
+    function random(min, max) {
+        return Math.random() * (max - min) + min;
     }
 
-    function updateMessage(hours, minutes) {
-        const currentTime = hours + minutes;
-        let lastMatchingMessage = "Standardnachricht für Zeiten ohne spezifische Engelszahl.";
-        let exactMatch = false;
+    // Berechnet die Distanz zwischen zwei Punkten im 2D-Raum.
+    function calculateDistance(p1x, p1y, p2x, p2y) {
+        let xDistance = p1x - p2x,
+            yDistance = p1y - p2y;
+        // Anwendung des Satzes des Pythagoras zur Berechnung der Distanz.
+        return Math.sqrt(Math.pow(xDistance, 2) + Math.pow(yDistance, 2));
+    }
 
-        // Finde die letzte passende Engelszahl
-        Object.keys(messages).forEach(time => {
-            if (parseInt(time, 10) <= parseInt(currentTime, 10)) {
-                lastMatchingMessage = messages[time];
-                if (time === currentTime) {
-                    exactMatch = true;
-                }
-            }
-        });
+    // Konstruktor für ein Feuerwerk. Definiert die Eigenschaften und das Verhalten eines einzelnen Feuerwerks.
+    function Firework(sx, sy, tx, ty) {
+        // Aktuelle Koordinaten des Feuerwerks.
+        this.x = sx;
+        this.y = sy;
+        // Startkoordinaten.
+        this.sx = sx;
+        this.sy = sy;
+        // Zielkoordinaten.
+        this.tx = tx;
+        this.ty = ty;
+        // Distanz vom Startpunkt zum Ziel.
+        this.distanceToTarget = calculateDistance(sx, sy, tx, ty);
+        this.distanceTraveled = 0;
+        // Verfolgt die vorherigen Koordinaten des Feuerwerks, um einen Schweifeffekt zu erzeugen.
+        this.coordinates = [];
+        this.coordinateCount = 3;
+        // Füllt das Koordinatenarray initial mit der aktuellen Position.
+        while(this.coordinateCount--) {
+            this.coordinates.push([this.x, this.y]);
+        }
+        // Berechnet den Winkel zur Zielausrichtung basierend auf Start- und Zielkoordinaten.
+        this.angle = Math.atan2(ty - sy, tx - sx);
+        // Startgeschwindigkeit und Beschleunigung des Feuerwerks.
+        this.speed = 2;
+        this.acceleration = 1.05;
+        // Helligkeit des Feuerwerks.
+        this.brightness = random(50, 70);
+        // Radius des Zielindikatorkreises.
+        this.targetRadius = 1;
+    }
 
-        document.getElementById("message").innerText = lastMatchingMessage;
+    // Aktualisiert den Status des Feuerwerks.
+    Firework.prototype.update = function(index) {
+        // Entfernt das letzte Koordinatenpaar und fügt die aktuellen Koordinaten am Anfang ein.
+        this.coordinates.pop();
+        this.coordinates.unshift([this.x, this.y]);
 
-        // Auslösen des Feuerwerk-Effekts bei exakter Übereinstimmung
-        if (exactMatch) {
-            triggerFireworksEffect();
+        // Lässt den Radius des Zielindikators pulsieren.
+        if(this.targetRadius < 8) {
+            this.targetRadius += 0.3;
+        } else {
+            this.targetRadius = 1;
+        }
+
+        // Beschleunigt das Feuerwerk.
+        this.speed *= this.acceleration;
+
+        // Berechnet die neuen Geschwindigkeiten basierend auf dem Winkel.
+        let vx = Math.cos(this.angle) * this.speed,
+            vy = Math.sin(this.angle) * this.speed;
+        // Aktualisiert die zurückgelegte Distanz.
+        this.distanceTraveled = calculateDistance(this.sx, this.sy, this.x + vx, this.y + vy);
+
+        // Überprüft, ob das Ziel erreicht wurde, um Partikel zu erzeugen und das Feuerwerk zu entfernen.
+        if(this.distanceTraveled >= this.distanceToTarget) {
+            createParticles(this.tx, this.ty); // Diese Funktion muss separat definiert werden.
+            fireworks.splice(index, 1);
+        } else {
+            // Falls das Ziel noch nicht erreicht wurde, aktualisiert die Position.
+            this.x += vx;
+            this.y += vy;
         }
     }
 
-    function triggerFireworksEffect() {
-        // Einfache "Feuerwerk"-Animation durch Farbwechsel
-        const messageElement = document.getElementById("message");
-        messageElement.style.transition = "color 1s ease";
-        messageElement.style.color = "red"; // Startfarbe
-        setTimeout(() => messageElement.style.color = "blue", 1000); // Endfarbe
-        // Setzen Sie die Farbe nach der Animation zurück auf Standard
-        setTimeout(() => messageElement.style.color = "#5f6368", 2000);
+    // Zeichnet das Feuerwerk und den Zielindikator auf dem Canvas.
+    Firework.prototype.draw = function() {
+        ctx.beginPath();
+        // Zeichnet eine Linie von der letzten Position zur aktuellen Position des Feuerwerks.
+        ctx.moveTo(this.coordinates[this.coordinates.length - 1][0], this.coordinates[this.coordinates.length - 1][1]);
+        ctx.lineTo(this.x, this.y);
+        // Setzt die Farbe des Feuerwerks.
+        ctx.strokeStyle = 'hsl(' + hue + ', 100%, ' + this.brightness + '%)';
+        ctx.stroke();
+
+        ctx.beginPath();
+        // Zeichnet einen Kreis am Zielort des Feuerwerks.
+        ctx.arc(this.tx, this.ty, this.targetRadius, 0, Math.PI * 2);
+        ctx.stroke();
     }
 
-    setInterval(updateClock, 1000); // Aktualisiert die Uhr jede Sekunde
 
-    const messages = {
-        "0000": "Neubeginn, ein frischer Start.",
-        "0101": "Neue Anfänge, Intuition folgen.",
-        "0111": "Zeichen für geistiges Erwachen und Wachstum.",
-        "0202": "Harmonie, Gleichgewicht und Beziehungen.",
-        "0222": "Geduld, Dinge entwickeln sich.",
-        "0303": "Das Universum unterstützt und führt Sie.",
-        "0333": "Die Aufgestiegenen Meister sind bei Ihnen.",
-        "0404": "Engelspräsenz, Schutz.",
-        "0444": "Verstärkte Engelspräsenz, Sie sind auf dem richtigen Weg.",
-        "0505": "Vorbereitung auf Veränderungen.",
-        "0555": "Große Veränderungen stehen bevor.",
-        "0606": "Ausgleich zwischen materiellen und spirituellen Belangen.",
-        "0707": "Sie sind auf dem richtigen Pfad, spirituelle Entwicklung.",
-        "0808": "Überfluss und Wohlstand nähern sich.",
-        "0909": "Ein Zyklus neigt sich dem Ende zu, Beginn eines Neuen.",
-        "1001": "Neue Möglichkeiten und Beginn.",
-        "1010": "Das Universum sendet eine Botschaft des Vertrauens und der Ermutigung.",
-        "1111": "Ein kraftvolles Zeichen der geistigen Verbindung.",
-        "1212": "Ein Weg des geistigen Wachstums und des Fortschritts.",
-        "1221": "Ein Zyklus endet, ein neuer beginnt.",
-        "1313": "Göttliche Weiblichkeit und Intuition.",
-        "1331": "Vertrauen Sie Ihrem inneren Selbst.",
-        "1414": "Hören Sie auf Ihre Engel und Führer.",
-        "1441": "Fokussierung auf das Positive.",
-        "1515": "Konzentration auf die Gedanken, die Sie fördern möchten.",
-        "1551": "Ein Wandel steht bevor.",
-        "1616": "Eine Nachricht über Liebe und Romantik.",
-        "1717": "Ein Zeichen für einen karmischen Pfad.",
-        "1818": "Positivität trotz Hindernissen.",
-        "1919": "Schließen Sie das Alte ab, um Platz für Neues zu schaffen.",
-        "2002": "Harmonie in Partnerschaften.",
-        "2020": "Doppelte Bestätigung, dass Dinge gut werden.",
-        "2121": "Ihre Gedanken manifestieren sich in rasanter Geschwindigkeit.",
-        "2112": "Verfolgen Sie Ihren Lebenszweck weiterhin.",
-        "2222": "Träume werden Wirklichkeit.",
-        "2323": "Vertrauen Sie Ihrem Weg und den Führungen.",
-        "2332": "Lassen Sie los und vertrauen Sie dem Fluss des Lebens."
-    };
+    // Konstruktorfunktion für einen Partikel. Partikel werden verwendet, um die Explosion eines Feuerwerks darzustellen.
+    function Particle(x, y) {
+        this.x = x; // Aktuelle X-Koordinate
+        this.y = y; // Aktuelle Y-Koordinate
+        this.coordinates = []; // Speichert vorherige Koordinaten für den Schweifeffekt
+        this.coordinateCount = 5; // Anzahl der zu speichernden vorherigen Koordinaten
+        while(this.coordinateCount--) {
+            this.coordinates.push([this.x, this.y]);
+        }
+        this.angle = random(0, Math.PI * 2); // Zufälliger Winkel für die Bewegungsrichtung
+        this.speed = random(1, 10); // Zufällige Geschwindigkeit
+        this.friction = 0.95; // Reibung, die die Geschwindigkeit verlangsamt
+        this.gravity = 1; // Schwerkraft, zieht den Partikel nach unten
+        this.hue = random(hue - 50, hue + 50); // Zufälliger Farbton nahe der globalen Hue-Variablen
+        this.brightness = random(50, 80); // Zufällige Helligkeit
+        this.alpha = 1; // Start-Transparenz
+        this.decay = random(0.015, 0.03); // Geschwindigkeit des Verblassens
+    }
+
+    // Aktualisiert den Zustand des Partikels (Position, Geschwindigkeit, Transparenz).
+    Particle.prototype.update = function(index) {
+        this.coordinates.pop(); // Entfernt die letzte Position
+        this.coordinates.unshift([this.x, this.y]); // Fügt die aktuelle Position hinzu
+        this.speed *= this.friction; // Verlangsamt den Partikel durch Reibung
+        this.x += Math.cos(this.angle) * this.speed; // Aktualisiert die X-Koordinate
+        this.y += Math.sin(this.angle) * this.speed + this.gravity; // Aktualisiert die Y-Koordinate
+        this.alpha -= this.decay; // Verringert die Transparenz
+        if(this.alpha <= this.decay) {
+            particles.splice(index, 1); // Entfernt den Partikel, wenn er genug verblasst ist
+        }
+    }
+
+    // Zeichnet den Partikel auf dem Canvas.
+    Particle.prototype.draw = function() {
+        ctx.beginPath();
+        ctx.moveTo(this.coordinates[this.coordinates.length - 1][0], this.coordinates[this.coordinates.length - 1][1]);
+        ctx.lineTo(this.x, this.y);
+        ctx.strokeStyle = `hsla(${this.hue}, 100%, ${this.brightness}%, ${this.alpha})`;
+        ctx.stroke();
+    }
+
+    // Erzeugt eine Gruppe von Partikeln, die eine Explosion darstellen.
+    function createParticles(x, y) {
+        let particleCount = 30; // Anzahl der Partikel in der Explosion
+        while(particleCount--) {
+            particles.push(new Particle(x, y)); // Erstellt und fügt einen neuen Partikel hinzu
+        }
+    }
+
+    // main demo loop
+    function loop() {
+        // this function will run endlessly with requestAnimationFrame
+        requestAnimFrame( loop );
+
+        // create random color
+        hue = random(0, 360);
+
+        // setting the composite operation to destination-out will allow us to clear the canvas at a specific opacity
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        ctx.fillRect( 0, 0, cw, ch );
+        // change the composite operation back to lighter
+        ctx.globalCompositeOperation = 'lighter';
+
+        // loop over each firework, draw it, update it
+        let i = fireworks.length;
+        while( i-- ) {
+            fireworks[ i ].draw();
+            fireworks[ i ].update( i );
+        }
+
+        // loop over each particle, draw it, update it
+        i = particles.length;
+        while( i-- ) {
+            particles[ i ].draw();
+            particles[ i ].update( i );
+        }
+
+        // Automatisches Starten von Feuerwerken nur, wenn isMatch wahr ist
+        if(timerTick >= timerTotal) {
+            if( !mousedown && isMatch ) { // Zusätzliche Prüfung auf isMatch
+                // das Feuerwerk an zufälligen Koordinaten
+                fireworks.push( new Firework( cw / 2, ch, random( 0, cw ), random( 0, ch / 2 ) ) );
+                timerTick = 0;
+            }
+        } else {
+            timerTick++;
+        }
+
+        // Limit für das manuelle Starten von Feuerwerken, wenn die Maus gedrückt wird
+        if( limiterTick >= limiterTotal ) {
+            if( mousedown ) {
+                // Startet das Feuerwerk an der aktuellen Mausposition
+                fireworks.push( new Firework( cw / 2, ch, mx, my ) );
+                limiterTick = 0;
+            }
+        } else {
+            limiterTick++;
+        }
+    }
+
+
+    // Bindung von Mausereignissen an das Canvas-Element.
+    // Aktualisiert die globalen Variablen mx und my mit den Koordinaten der Maus relativ zum Canvas,
+    // wann immer die Maus über das Canvas bewegt wird.
+    canvas.addEventListener('mousemove', function(e) {
+        // Berechnet die X-Koordinate der Maus relativ zum Canvas.
+        // e.pageX gibt die horizontale Position der Maus im Viewport an,
+        // canvas.offsetLeft gibt den horizontalen Abstand des Canvas vom linken Rand des Viewports an.
+        mx = e.pageX - canvas.offsetLeft;
+
+        // Berechnet die Y-Koordinate der Maus relativ zum Canvas.
+        // e.pageY gibt die vertikale Position der Maus im Viewport an,
+        // canvas.offsetTop gibt den vertikalen Abstand des Canvas vom oberen Rand des Viewports an.
+        my = e.pageY - canvas.offsetTop;
+    });
+
+    // Reagiert auf das 'mousedown' Ereignis, um zu erkennen, wenn die Maus über dem Canvas gedrückt wird.
+    // Dies kann verwendet werden, um Feuerwerke manuell zu starten.
+    canvas.addEventListener('mousedown', function(e) {
+        e.preventDefault(); // Verhindert, dass der Standardaktion des Browsers ausgeführt wird,
+                            // was nützlich sein kann, um zu vermeiden, dass der Browser das Canvas-Element auswählt.
+        mousedown = true;  // Setzt die globale Variable mousedown auf true, was in der Logik der Animation
+        // verwendet werden kann, um auf das Drücken der Maus zu reagieren, z.B. um ein Feuerwerk zu starten.
+    });
+
+    // Reagiert auf das 'mouseup' Ereignis, um zu erkennen, wenn die Maus über dem Canvas losgelassen wird.
+    canvas.addEventListener('mouseup', function(e) {
+        e.preventDefault(); // Verhindert erneut die Standardaktion des Browsers.
+        mousedown = false; // Setzt die globale Variable mousedown zurück auf false, was signalisiert,
+        // dass die Maustaste nicht mehr gedrückt wird.
+    });
+
+    // Definiert, was passieren soll, wenn das Fenster geladen wird.
+    // In diesem Fall soll die 'loop' Funktion aufgerufen werden, die die Hauptanimationslogik enthält.
+    window.onload = loop; // Dieser Aufruf startet die Animation, sobald die Webseite vollständig geladen ist.
+                          // Die 'loop' Funktion ist für die kontinuierliche Ausführung der Animationslogik verantwortlich,
+                          // indem sie sich selbst wiederholt mit requestAnimationFrame für eine flüssige Animation.
+
 </script>
+
 </body>
 </html>
+
+
+
